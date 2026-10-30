@@ -172,21 +172,6 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="stat-grid">
-        <StatCard label="전체 이벤트" value={total} loading={loading} hint="GET /api/logs 전체 건수" />
-        <StatCard
-          label="차단 이벤트"
-          value={blocked}
-          loading={loading}
-          tone="danger"
-          hint={
-            total && blocked !== null ? `차단율 ${((blocked / total) * 100).toFixed(1)}%` : "blocked=true 건수"
-          }
-        />
-        <StatCard label="위험 사용자" unlinked hint="알림 API 스키마 확정 후 연동" />
-        <StatCard label="허니파일 접근" unlinked hint="허니파일/카나리 API 계약 필요" />
-      </div>
-
       <div className="grid-2-1">
         <section className="card">
           <div className="card-head">
@@ -213,7 +198,21 @@ export default function Dashboard() {
           )}
         </section>
 
-        <AlertsPanel />
+        <div className="stack">
+          <div className="stat-grid stat-grid-2">
+            <StatCard label="전체 이벤트" value={total} loading={loading} hint="GET /api/logs 전체 건수" />
+            <StatCard
+              label="차단 이벤트"
+              value={blocked}
+              loading={loading}
+              tone="danger"
+              hint={
+                total && blocked !== null ? `차단율 ${((blocked / total) * 100).toFixed(1)}%` : "blocked=true 건수"
+              }
+            />
+          </div>
+          <AlertsPanel />
+        </div>
       </div>
 
       <section className="card">
