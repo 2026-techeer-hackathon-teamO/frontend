@@ -31,16 +31,6 @@ A. 대시보드 /
 - 최근 로그 테이블: received_at, user, host, event_type, file_name, blocked (로그에는 위험도 필드 없음)
 - 위험 경보 요약: GET /api/alerts 응답 스키마가 확정되면 연동. 그전에는 목업임을 표시하거나 영역을 숨김
 
-  ┌───────────────┬────────────────────────────────────────────────────┐
-  │ TrapDLP │ 보안 관제 대시보드 │
-  │ ├────────────┬────────────┬────────────┬────────────┤
-  │ 대시보드 │ 전체 이벤트│ 차단 이벤트│ 위험 사용자│ 허니파일 │
-  │ 보안 이벤트 ├────────────┴────────────┴────────────┴────────────┤
-  │ AI 위협 분석 │ 위험도별 그래프 │ 최근 경보 │
-  │ 기능 테스트 ├─────────────────────────┴──────────────────────────┤
-  │ │ 최근 보안 이벤트 테이블 │
-  └───────────────┴────────────────────────────────────────────────────┘
-
 B. 보안 이벤트 /events
 
 - 이벤트 목록: received_at, user, host, event_type, file_name, classification, channel, blocked
@@ -65,36 +55,6 @@ D. 기능 테스트 /simulation
 - 카나리: 승인된 테스트 문서/토큰에 대한 접근 기록 확인
 - 시연용 로그 생성: POST /api/logs는 host, user, event_type이 필수이며, id/`received_at`은 서버가 부여한다. 실제 로그 적재는 Agent 담당이다.
 - 주의: 이메일 DLP 검사·USB 시뮬레이션 실행·AI 문서 생성·카나리 테스트의 실행 API는 이번 로그 API 명세만으로 확인할 수 없다. 백엔드 담당자와 별도 계약해야 한다.
-
-## 폴더 구조
-
-```
-frontend/
-├── src/
-│   ├── api/
-│   │   └── client.ts        # API 호출 함수 (GET/POST /api/logs, GET /api/logs/{id}, GET /api/alerts)
-│   ├── components/
-│   │   ├── Sidebar.tsx      # 공통 메뉴 + 백엔드 응답 상태
-│   │   ├── StatCard.tsx     # 통계 카드
-│   │   ├── EventTable.tsx   # 이벤트 테이블 (+ 유형/차단 태그)
-│   │   └── RiskBadge.tsx    # 위험도 배지 (LOW/MEDIUM/HIGH/CRITICAL)
-│   ├── hooks/
-│   │   └── usePolling.ts    # 5초 폴링 훅
-│   ├── pages/
-│   │   ├── Dashboard.tsx
-│   │   ├── Events.tsx
-│   │   ├── Analysis.tsx
-│   │   └── Simulation.tsx
-│   ├── data/
-│   │   └── mockEvents.ts    # 개발용 목업 데이터 (AI 분석 화면 전용)
-│   ├── utils/
-│   │   └── format.ts        # 날짜/숫자 포맷
-│   ├── App.tsx
-│   ├── main.tsx
-│   └── index.css
-├── .env.example
-└── package.json
-```
 
 > 개발 중에는 Vite 프록시를 거치므로 CORS 설정이 필요 없습니다. `VITE_API_BASE`로 백엔드에 직접 요청할 때는 백엔드 CORS에서 `expose_headers=["X-Total-Count"]`를 열어야 통계 카드·페이지네이션의 전체 건수가 표시됩니다.
 
