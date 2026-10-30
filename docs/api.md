@@ -23,14 +23,12 @@ channel | string / null | 선택 | 예 | 반출 채널 | usb:E:
 blocked | boolean | 선택 | 아니오 | 정책 차단 여부, 기본 false | false
 detail | object | 선택 | 아니오 | 추가 정보, 기본 {} | { "size": 10 }
 
-event_type 허용 값
+event_type | 허용 값
 값 | 의미
 file_access | 파일 접근
 email_send | 이메일 전송
 usb_copy | USB 복사
 blocked | 차단 이벤트
-
-주의: 원본 해커톤 기획서의 대문자 이벤트 코드(USB_COPY_ATTEMPT 등)와 이 API의 소문자 enum은 서로 다르다. 이 API에 요청할 때는 위 네 가지 소문자 값만 사용해야 한다. 별도 변환 규칙은 백엔드 담당자와 협의한다.
 
 ## POST /api/logs — 로그 생성
 
