@@ -68,34 +68,42 @@ D. 기능 테스트 /simulation
 
 ## 폴더 구조
 
-trapdlp-frontend/
+```
+frontend/
 ├── src/
-│ ├── api/
-│ │ └── client.js # API 호출 함수
-│ ├── components/
-│ │ ├── Sidebar.jsx # 공통 메뉴
-│ │ ├── StatCard.jsx # 통계 카드
-│ │ ├── EventTable.jsx # 이벤트 테이블
-│ │ └── RiskBadge.jsx # 위험도 배지
-│ ├── pages/
-│ │ ├── Dashboard.jsx
-│ │ ├── Events.jsx
-│ │ ├── Analysis.jsx
-│ │ └── Simulation.jsx
-│ ├── data/
-│ │ └── mockEvents.js # 개발용 목업 데이터
-│ ├── App.jsx
-│ ├── main.jsx
-│ └── index.css
+│   ├── api/
+│   │   └── client.ts        # API 호출 함수 (GET/POST /api/logs, GET /api/logs/{id}, GET /api/alerts)
+│   ├── components/
+│   │   ├── Sidebar.tsx      # 공통 메뉴 + 백엔드 응답 상태
+│   │   ├── StatCard.tsx     # 통계 카드
+│   │   ├── EventTable.tsx   # 이벤트 테이블 (+ 유형/차단 태그)
+│   │   └── RiskBadge.tsx    # 위험도 배지 (LOW/MEDIUM/HIGH/CRITICAL)
+│   ├── hooks/
+│   │   └── usePolling.ts    # 5초 폴링 훅
+│   ├── pages/
+│   │   ├── Dashboard.tsx
+│   │   ├── Events.tsx
+│   │   ├── Analysis.tsx
+│   │   └── Simulation.tsx
+│   ├── data/
+│   │   └── mockEvents.ts    # 개발용 목업 데이터 (AI 분석 화면 전용)
+│   ├── utils/
+│   │   └── format.ts        # 날짜/숫자 포맷
+│   ├── App.tsx
+│   ├── main.tsx
+│   └── index.css
 ├── .env.example
 └── package.json
+```
+
+> 개발 중에는 Vite 프록시를 거치므로 CORS 설정이 필요 없습니다. `VITE_API_BASE`로 백엔드에 직접 요청할 때는 백엔드 CORS에서 `expose_headers=["X-Total-Count"]`를 열어야 통계 카드·페이지네이션의 전체 건수가 표시됩니다.
 
 ## 실행
 
 ```bash
 cd frontend
 npm install
-cp .env.example .env     # VITE_API_BASE 확인 (기본: http://localhost:8000)
+cp .env.example .env     # VITE_PROXY_TARGET에 백엔드 주소 설정 (기본: http://localhost:8000)
 npm run dev              # http://localhost:5173
 ```
 
