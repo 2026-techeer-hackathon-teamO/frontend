@@ -1,4 +1,9 @@
-export const API_BASE = (import.meta.env.VITE_API_BASE ?? "http://localhost:8000").replace(/\/+$/, "");
+/** 비어 있으면 같은 출처(/api)로 요청하고, 개발 서버에서는 Vite 프록시가 백엔드로 전달한다. */
+export const API_BASE = (import.meta.env.VITE_API_BASE ?? "").replace(/\/+$/, "");
+
+/** 화면 표시용 실제 요청 대상 */
+export const API_TARGET =
+  API_BASE || `${import.meta.env.VITE_PROXY_TARGET ?? "http://localhost:8000"} (프록시)`;
 
 export const EVENT_TYPES = ["file_access", "email_send", "usb_copy", "blocked"] as const;
 export type EventType = (typeof EVENT_TYPES)[number];
@@ -98,7 +103,12 @@ async function request<T>(path: string, init?: RequestInit): Promise<{ data: T; 
       },
     });
   } catch {
-    throw new ApiError(0, `백엔드에 연결할 수 없습니다 (${API_BASE})`);
+    throw new ApiError(0, `백엔드에 연결할 수 없습니다 (${API_TARGET})`);
+  }
+
+  // 프록시 대상에 연결하지 못하면 개발 서버가 502를 돌려준다 (vite.config.ts).
+  if (!API_BASE && res.status === 502) {
+    throw new ApiError(res.status, `백엔드에 연결할 수 없습니다 (${API_TARGET})`);
   }
 
   const text = await res.text();

@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { API_BASE, api } from "../api/client";
+import { API_TARGET, api } from "../api/client";
 import { usePolling } from "../hooks/usePolling";
 import { formatTime } from "../utils/format";
 
@@ -40,8 +40,8 @@ export default function Sidebar() {
       <div className="sys-status">
         <div className="sys-status-title">백엔드 로그 API</div>
         <div className={`status-dot ${state}`}>{label}</div>
-        <div className="sys-status-meta" title={API_BASE}>
-          {API_BASE}
+        <div className="sys-status-meta" title={API_TARGET}>
+          {API_TARGET}
         </div>
         {updatedAt && <div className="sys-status-meta">마지막 응답 {formatTime(updatedAt)}</div>}
         {error && <div className="sys-status-meta danger">{error.message}</div>}

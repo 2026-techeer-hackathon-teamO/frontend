@@ -96,14 +96,14 @@ frontend/
 └── package.json
 ```
 
-> 백엔드 CORS 설정에서 `expose_headers=["X-Total-Count"]`를 열어야 통계 카드·페이지네이션의 전체 건수가 표시됩니다.
+> 개발 중에는 Vite 프록시를 거치므로 CORS 설정이 필요 없습니다. `VITE_API_BASE`로 백엔드에 직접 요청할 때는 백엔드 CORS에서 `expose_headers=["X-Total-Count"]`를 열어야 통계 카드·페이지네이션의 전체 건수가 표시됩니다.
 
 ## 실행
 
 ```bash
 cd frontend
 npm install
-cp .env.example .env     # VITE_API_BASE 확인 (기본: http://localhost:8000)
+cp .env.example .env     # VITE_PROXY_TARGET에 백엔드 주소 설정 (기본: http://localhost:8000)
 npm run dev              # http://localhost:5173
 ```
 
