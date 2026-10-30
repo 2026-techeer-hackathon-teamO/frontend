@@ -17,8 +17,9 @@ function NotFound() {
 }
 
 export default function App() {
+  // 전체 페이지 라이트 테마
   return (
-    <div className="layout">
+    <div className="layout theme-light">
       <Sidebar />
       <main className="main">
         <Routes>

@@ -77,6 +77,30 @@ code { background: var(--panel-2); padding: 1px 5px; border-radius: 4px; font-si
 .brand-icon { flex-shrink: 0; color: var(--accent); }
 
 .main { flex: 1; min-width: 0; }
+
+/* 라이트 테마: 전체 레이아웃에 적용 (변수 재정의) */
+.theme-light {
+  --bg: #f4f6f9;
+  --panel: #ffffff;
+  --panel-2: #eef1f5;
+  --border: #dde2ea;
+  --text: #1b1f27;
+  --muted: #5f6b7a;
+  --accent: #3b6fe0;
+  --critical: #a51fd1;
+  --high: #d93636;
+  --medium: #b86e00;
+  --low: #2a78d0;
+  --ok: #2e8b5a;
+  --type-file_access: #2a78d0;
+  --type-email_send: #7a4fd6;
+  --type-usb_copy: #b86e00;
+  --type-blocked: #d93636;
+  background: var(--bg);
+  color: var(--text);
+  color-scheme: light;
+}
+.theme-light .card { box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04); }
 .page { max-width: 1280px; margin: 0 auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
 .page-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; }
 .page-head p { margin: 6px 0 0; }
