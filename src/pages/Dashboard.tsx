@@ -2,14 +2,18 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ApiError, EVENT_TYPES, EVENT_TYPE_LABELS, api, type EventType, type LogRecord } from "../api/client";
 import EventTable from "../components/EventTable";
+import RiskBadge from "../components/RiskBadge";
 import StatCard from "../components/StatCard";
+import { USE_MOCK, loadMockDashboard } from "../data/mockDashboard";
+import { mockAnalyses } from "../data/mockEvents";
 import { usePolling } from "../hooks/usePolling";
-import { formatNumber, formatTime } from "../utils/format";
+import { formatDateTime, formatNumber, formatTime } from "../utils/format";
 
 const HOUR = 3600 * 1000;
 const WINDOW_LIMIT = 1000; // GET /api/logs limit 최대값
 
 async function loadDashboard() {
+  if (USE_MOCK) return loadMockDashboard();
   const since = new Date(Date.now() - 24 * HOUR).toISOString();
   const [recent, blocked, window24, ...byType] = await Promise.all([
     api.logs({ limit: 10 }), // 필터 없는 X-Total-Count = 전체 로그 수
@@ -43,7 +47,7 @@ function HourlyChart({ logs, now, truncated }: { logs: LogRecord[]; now: Date; t
   const buckets = hourlyBuckets(logs, now);
   const max = Math.max(1, ...buckets.map((b) => b.total));
   return (
-    <div>
+    <div className="chart-body">
       <div className="bar-chart">
         {buckets.map((b, i) => (
           <div
@@ -94,6 +98,31 @@ function TypeDistribution({ items }: { items: { type: EventType; total: number |
       ))}
       <div className="muted small">전체 기간 · event_type별 X-Total-Count</div>
     </div>
+  );
+}
+
+function MockAlertsPanel() {
+  return (
+    <section className="card">
+      <div className="card-head">
+        <h2>최근 경보</h2>
+        <Link to="/analysis" className="link">
+          AI 분석 →
+        </Link>
+      </div>
+      <ul className="history">
+        {mockAnalyses.map((a) => (
+          <li key={a.id} style={{ flexDirection: "column", alignItems: "flex-start", gap: 4 }}>
+            <div>
+              <RiskBadge level={a.risk_level} /> <b>{a.attack_type}</b>
+            </div>
+            <div className="muted small">
+              {a.user} · {a.host} · 위험도 {a.risk_score} · {formatDateTime(a.analyzed_at)}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
@@ -156,7 +185,9 @@ export default function Dashboard() {
     <div className="page">
       <header className="page-head">
         <div>
-          <h1>보안 관제 대시보드</h1>
+          <h1>
+            보안 관제 대시보드 {USE_MOCK && <span className="tag tag-muted">목데이터</span>}
+          </h1>
           <p className="muted">5초마다 자동 갱신{updatedAt && ` · 마지막 갱신 ${formatTime(updatedAt)}`}</p>
         </div>
         <button className="btn" onClick={refresh}>
@@ -173,7 +204,7 @@ export default function Dashboard() {
       )}
 
       <div className="grid-2-1">
-        <section className="card">
+        <section className="card chart-card">
           <div className="card-head">
             <h2>로그 추이</h2>
             <div className="segmented">
@@ -200,18 +231,16 @@ export default function Dashboard() {
 
         <div className="stack">
           <div className="stat-grid stat-grid-2">
-            <StatCard label="전체 이벤트" value={total} loading={loading} hint="GET /api/logs 전체 건수" />
+            <StatCard label="전체 이벤트" value={total} loading={loading} />
             <StatCard
               label="차단 이벤트"
               value={blocked}
               loading={loading}
               tone="danger"
-              hint={
-                total && blocked !== null ? `차단율 ${((blocked / total) * 100).toFixed(1)}%` : "blocked=true 건수"
-              }
+              hint={total && blocked !== null ? `차단율 ${((blocked / total) * 100).toFixed(1)}%` : undefined}
             />
           </div>
-          <AlertsPanel />
+          {USE_MOCK ? <MockAlertsPanel /> : <AlertsPanel />}
         </div>
       </div>
 

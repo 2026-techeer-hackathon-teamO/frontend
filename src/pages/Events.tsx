@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ApiError, EVENT_TYPES, EVENT_TYPE_LABELS, api, type LogQuery, type LogRecord } from "../api/client";
 import EventTable, { BlockedTag, EventTypeTag } from "../components/EventTable";
+import { USE_MOCK, mockLog, mockLogs } from "../data/mockDashboard";
 import { usePolling } from "../hooks/usePolling";
 import { formatDateTime, formatNumber, formatTime, isoToLocalInput, localInputToIso } from "../utils/format";
 
@@ -26,8 +27,7 @@ function LogDetail({ id, onClose }: { id: string; onClose: () => void }) {
   useEffect(() => {
     let cancelled = false;
     setState({ loading: true });
-    api
-      .log(id)
+    (USE_MOCK ? mockLog(id) : api.log(id))
       .then((log) => !cancelled && setState({ log, loading: false }))
       .catch((error: Error) => !cancelled && setState({ error, loading: false }));
     return () => {
@@ -121,7 +121,7 @@ export default function Events() {
   };
   const queryKey = JSON.stringify(query);
 
-  const { data, error, loading, updatedAt, refresh } = usePolling(() => api.logs(query), [queryKey]);
+  const { data, error, loading, updatedAt, refresh } = usePolling(() => (USE_MOCK ? mockLogs(query) : api.logs(query)), [queryKey]);
 
   /** URL 파라미터 갱신. 필터가 바뀌면 page를 0으로 초기화한다. */
   const update = (patch: Record<string, string | null>, resetPage = true) => {
@@ -161,7 +161,9 @@ export default function Events() {
     <div className="page">
       <header className="page-head">
         <div>
-          <h1>보안 이벤트</h1>
+          <h1>
+            보안 이벤트 {USE_MOCK && <span className="tag tag-muted">목데이터</span>}
+          </h1>
           <p className="muted">
             5초마다 자동 갱신{updatedAt && ` · 마지막 갱신 ${formatTime(updatedAt)}`}
           </p>
