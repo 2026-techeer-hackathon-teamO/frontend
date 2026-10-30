@@ -24,9 +24,9 @@
 
 ```
  ┌──────────┐   로그 전송   ┌──────────┐   REST API (/api/logs, /api/alerts)   ┌────────────┐
- │  agent   │ ───────────▶ │ backend  │ ◀──────────────────────────────────── │  frontend  │
- │ (Windows)│              │ (FastAPI)│          5초 폴링                     │ (이 레포)   │
- └──────────┘              └──────────┘                                       └────────────┘
+ │  agent   │ ───────────▶ │ backend  │ ◀────────────────────────────────────│  frontend  │
+ │ (Windows)│               │ (FastAPI)│          5초 폴링                     │ (이 레포)   
+ └──────────┘               └──────────┘                                       └────────────┘
 ```
 
 <br/>
@@ -35,13 +35,13 @@
 
 | 페이지 | 경로 | 기능 |
 | :-- | :-- | :-- |
-| 📊 **보안 관제 대시보드** | `/` | 전체·차단 이벤트 통계 카드(차단율), 최근 24시간 시간별 로그 추이 / 유형별 분포 차트, 최근 경보, 최근 보안 이벤트 10건 |
-| 🔎 **보안 이벤트** | `/events` | 호스트·사용자·유형·문서 등급·차단 여부·기간 서버 필터, 페이지네이션(20/50/100), 이벤트 상세 패널 |
-| 🧠 **AI 위협 분석** | `/analysis` | 위험도(LOW ~ CRITICAL) 요약, 사용자별 공격 유형·위험 점수, 판단 근거 & 권장 대응, 관련 이벤트 타임라인 |
-| 🧪 **기능 테스트** | `/simulation` | 이메일 / USB / 허니파일 / 카나리 시나리오별 시연용 로그 생성, JSON 직접 입력 및 422 검증 오류 확인 |
+| **보안 관제 대시보드** | `/` | 전체·차단 이벤트 통계 카드(차단율), 최근 24시간 시간별 로그 추이 / 유형별 분포 차트, 최근 경보, 최근 보안 이벤트 10건 |
+| **보안 이벤트** | `/events` | 호스트·사용자·유형·문서 등급·차단 여부·기간 서버 필터, 페이지네이션(20/50/100), 이벤트 상세 패널 |
+| **AI 위협 분석** | `/analysis` | 위험도(LOW ~ CRITICAL) 요약, 사용자별 공격 유형·위험 점수, 판단 근거 & 권장 대응, 관련 이벤트 타임라인 |
+| **기능 테스트** | `/simulation` | 이메일 / USB / 허니파일 / 카나리 시나리오별 시연용 로그 생성, JSON 직접 입력 및 422 검증 오류 확인 |
 
 <details>
-<summary><b>📊 대시보드 자세히 보기</b></summary>
+<summary><b>대시보드 자세히 보기</b></summary>
 <br/>
 
 - **통계 카드** — `GET /api/logs`의 `X-Total-Count` 헤더로 전체 이벤트 수, `blocked=true` 필터로 차단 이벤트 수와 차단율을 계산합니다.
@@ -54,7 +54,7 @@
 </details>
 
 <details>
-<summary><b>🔎 보안 이벤트 자세히 보기</b></summary>
+<summary><b>보안 이벤트 자세히 보기</b></summary>
 <br/>
 
 - 모든 필터 · 페이지 · 선택된 이벤트가 **URL 쿼리 파라미터**에 저장되어 새로고침하거나 링크로 공유해도 같은 화면이 유지됩니다.
@@ -64,7 +64,7 @@
 </details>
 
 <details>
-<summary><b>🧠 AI 위협 분석 자세히 보기</b></summary>
+<summary><b>AI 위협 분석 자세히 보기</b></summary>
 <br/>
 
 - 위험도 등급별 건수 요약 (`LOW · 낮음` / `MEDIUM · 보통` / `HIGH · 높음` / `CRITICAL · 심각`)
@@ -77,16 +77,16 @@
 </details>
 
 <details>
-<summary><b>🧪 기능 테스트 자세히 보기</b></summary>
+<summary><b>기능 테스트 자세히 보기</b></summary>
 <br/>
 
 | 시나리오 | 생성되는 로그 |
 | :-- | :-- |
-| 📧 이메일 검사 | `event_type=email_send`, `channel=email:<수신자>` |
-| 💾 USB 복사 | `event_type=usb_copy`, `channel=usb:<드라이브>` |
-| 🍯 허니파일 접근 | `event_type=file_access`, `detail.scenario=honeyfile` |
-| 🐤 카나리 토큰 | `event_type=file_access`, `detail.scenario=canary` |
-| 🛠️ 직접 입력 | `POST /api/logs` 본문을 JSON으로 직접 작성 |
+| 이메일 검사 | `event_type=email_send`, `channel=email:<수신자>` |
+| USB 복사 | `event_type=usb_copy`, `channel=usb:<드라이브>` |
+| 허니파일 접근 | `event_type=file_access`, `detail.scenario=honeyfile` |
+| 카나리 토큰 | `event_type=file_access`, `detail.scenario=canary` |
+| 직접 입력 | `POST /api/logs` 본문을 JSON으로 직접 작성 |
 
 - 파일을 첨부하면 파일명과 크기가 자동으로 채워지고, 전송 전 요청 본문을 미리 볼 수 있습니다.
 - FastAPI 422 응답은 `위치 / 유형 / 메시지` 표로 풀어서 보여줍니다.
