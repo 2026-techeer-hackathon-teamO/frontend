@@ -51,14 +51,24 @@ const FILES = [
   { name: "제품_소개서.pdf", classification: "public" },
 ] as const;
 
-const EMAIL_TARGETS = ["gmail.com", "naver.com", "partner-corp.co.kr", "outlook.com"];
+const CONFIDENTIAL = FILES.filter((f) => f.classification === "confidential");
+const INTERNAL = FILES.filter((f) => f.classification === "internal");
+
+const TRUSTED_DOMAIN = "partner-corp.co.kr";
+const PERSONAL_DOMAINS = ["gmail.com", "naver.com", "outlook.com"];
+const EMAIL_TARGETS = [...PERSONAL_DOMAINS, TRUSTED_DOMAIN];
+const USB_DEVICES = ["SanDisk Ultra 64GB", "Samsung BAR Plus", "Kingston DataTraveler"];
+
+const POLICY_EXTERNAL = "DLP-01 기밀문서 외부 반출 차단";
+const POLICY_ACCESS = "DLP-02 기밀 폴더 무권한 접근 차단";
+const POLICY_CHANNEL = "DLP-04 비인가 채널 차단";
 
 /** 0~23시 활동량 가중치: 업무시간에 몰리고, 22~01시에 비정상 반출 시도가 튀도록 구성 */
 const HOURLY_WEIGHT = [
   0.9, 0.5, 0.2, 0.1, 0.1, 0.2, 0.4, 0.9, 2.2, 3.4, 3.8, 3.5, 2.1, 3.0, 3.7, 3.9, 3.6, 3.0, 2.0, 1.1, 0.8, 0.7, 1.6,
   2.4,
 ];
-const NIGHT_HOURS = new Set([22, 23, 0, 1]);
+export const NIGHT_HOURS = new Set([22, 23, 0, 1]);
 const BASE_PER_HOUR = 14;
 
 let seq = 0;
@@ -86,19 +96,31 @@ function makeLog(at: number): LogRecord {
 
   if (event_type === "usb_copy" || (event_type === "blocked" && rand() < 0.5)) {
     channel = `usb:${pick(["E:", "F:"])}`;
-    detail.device = pick(["SanDisk Ultra 64GB", "Samsung BAR Plus", "Kingston DataTraveler"]);
+    detail.device = pick(USB_DEVICES);
     if (sensitive && rand() < 0.7) blocked = true;
   } else if (event_type === "email_send" || event_type === "blocked") {
     const domain = pick(EMAIL_TARGETS);
     channel = `smtp:${domain}`;
     detail.recipient = `${pick(["backup", "me", "work", "temp"])}${Math.floor(rand() * 99)}@${domain}`;
-    if (sensitive && domain !== "partner-corp.co.kr" && rand() < 0.6) blocked = true;
+    if (sensitive && domain !== TRUSTED_DOMAIN && rand() < 0.6) blocked = true;
   } else {
     detail.path = `\\\\fileserver\\share\\${file.classification}\\${file.name}`;
     if (file.name.includes("연봉테이블")) detail.honeyfile = true;
   }
-  if (blocked) detail.policy = sensitive ? "DLP-01 기밀문서 외부 반출 차단" : "DLP-04 비인가 채널 차단";
+  if (blocked) detail.policy = sensitive ? POLICY_EXTERNAL : POLICY_CHANNEL;
 
+  return record(at, actor, file, event_type, channel, blocked, detail);
+}
+
+function record(
+  at: number,
+  actor: (typeof USERS)[number],
+  file: (typeof FILES)[number],
+  event_type: EventType,
+  channel: string | null,
+  blocked: boolean,
+  detail: Record<string, unknown>,
+): LogRecord {
   seq += 1;
   return {
     id: `mock-${seq.toString().padStart(6, "0")}`,
@@ -115,6 +137,50 @@ function makeLog(at: number): LogRecord {
   };
 }
 
+/** 같은 사용자·같은 유형인데 조건 차이로 허용/차단이 갈리는 이벤트 쌍 (오래된 순: 허용 → 차단) */
+function makeContrastPair(at: number): LogRecord[] {
+  const actor = pick(USERS);
+  const first = at - (2 + rand() * 3) * 1000;
+  const scenario = rand();
+
+  if (scenario < 0.4) {
+    // 같은 기밀 문서라도 협력사 메일은 허용, 개인 메일은 차단
+    const file = pick(CONFIDENTIAL);
+    const domain = pick(PERSONAL_DOMAINS);
+    return [
+      record(first, actor, file, "email_send", `smtp:${TRUSTED_DOMAIN}`, false, {
+        recipient: `pm@${TRUSTED_DOMAIN}`,
+      }),
+      record(at, actor, file, "email_send", `smtp:${domain}`, true, {
+        recipient: `${actor.user}.backup@${domain}`,
+        policy: POLICY_EXTERNAL,
+      }),
+    ];
+  }
+  if (scenario < 0.75) {
+    // 같은 USB라도 사내 문서는 허용, 기밀 문서는 차단
+    const channel = `usb:${pick(["E:", "F:"])}`;
+    const device = pick(USB_DEVICES);
+    return [
+      record(first, actor, pick(INTERNAL), "usb_copy", channel, false, { device }),
+      record(at, actor, pick(CONFIDENTIAL), "usb_copy", channel, true, { device, policy: POLICY_EXTERNAL }),
+    ];
+  }
+  // 파일 서버 열람: 사내 문서는 허용, 권한 없는 기밀 폴더는 차단 (허니파일은 탐지용이라 열어 둔다)
+  const allowed = pick(INTERNAL);
+  const denied = pick(CONFIDENTIAL.filter((f) => !f.name.includes("연봉테이블")));
+  const path = (f: (typeof FILES)[number]) => `\\\\fileserver\\share\\${f.classification}\\${f.name}`;
+  return [
+    record(first, actor, allowed, "file_access", null, false, { path: path(allowed) }),
+    record(at, actor, denied, "file_access", null, true, { path: path(denied), policy: POLICY_ACCESS }),
+  ];
+}
+
+/** 이력 생성 시 이벤트 대신 허용/차단 대비 쌍을 넣을 확률 */
+const PAIR_RATE_HISTORY = 0.05;
+/** 폴링 보정 시 대비 쌍을 넣을 확률 — 대시보드 최근 10건에 대체로 한 쌍은 보이도록 */
+const PAIR_RATE_LIVE = 0.3;
+
 /** 최신순 */
 const logs: LogRecord[] = [];
 /** 보안 이벤트 목록에서 페이지를 넘겨볼 수 있도록 최근 14일치를 미리 만들어 둔다 */
@@ -129,10 +195,13 @@ function fillUntil(now: number) {
     const perHour = BASE_PER_HOUR * HOURLY_WEIGHT[new Date(t).getHours()];
     t += -Math.log(1 - rand()) * (HOUR / perHour); // 포아송 도착 간격
     if (t > now) break;
-    fresh.push(makeLog(t));
+    if (rand() < PAIR_RATE_HISTORY) fresh.push(...makeContrastPair(t));
+    else fresh.push(makeLog(t));
   }
   generatedUntil = now;
-  logs.unshift(...fresh.reverse());
+  // 대비 쌍의 앞 이벤트가 직전 이벤트보다 이를 수 있어 시간순으로 다시 정렬
+  fresh.sort((a, b) => new Date(b.received_at).getTime() - new Date(a.received_at).getTime());
+  logs.unshift(...fresh);
 }
 
 /** 현재 시각까지 로그를 채운다. 폴링마다 1~2건은 들어오도록 보정 */
@@ -140,7 +209,7 @@ function sync() {
   const now = Date.now();
   fillUntil(now);
   if (logs.length === 0 || now - new Date(logs[0].received_at).getTime() > 6000) {
-    logs.unshift(makeLog(now));
+    logs.unshift(...(rand() < PAIR_RATE_LIVE ? makeContrastPair(now) : [makeLog(now)]).reverse());
   }
   return now;
 }
