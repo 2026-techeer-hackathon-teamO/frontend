@@ -73,7 +73,8 @@ code { background: var(--panel-2); padding: 1px 5px; border-radius: 4px; font-si
 }
 .nav-link:hover { background: var(--panel-2); color: var(--text); }
 .nav-link.active { background: var(--panel-2); color: var(--text); font-weight: 600; }
-.nav-icon { width: 20px; text-align: center; }
+.nav-icon { flex-shrink: 0; }
+.brand-icon { flex-shrink: 0; color: var(--accent); }
 
 .sys-status {
   margin-top: auto;
@@ -99,6 +100,7 @@ code { background: var(--panel-2); padding: 1px 5px; border-radius: 4px; font-si
 .page-head p { margin: 6px 0 0; }
 
 .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.stat-grid-2 { grid-template-columns: repeat(2, 1fr); }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .grid-2-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
 .grid-1-2 { display: grid; grid-template-columns: 1fr 2fr; gap: 16px; align-items: start; }
