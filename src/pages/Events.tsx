@@ -161,9 +161,7 @@ export default function Events() {
     <div className="page">
       <header className="page-head">
         <div>
-          <h1>
-            보안 이벤트 {USE_MOCK && <span className="tag tag-muted">목데이터</span>}
-          </h1>
+          <h1>보안 이벤트</h1>
           <p className="muted">
             5초마다 자동 갱신{updatedAt && ` · 마지막 갱신 ${formatTime(updatedAt)}`}
           </p>

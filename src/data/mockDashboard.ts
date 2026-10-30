@@ -58,7 +58,7 @@ const HOURLY_WEIGHT = [
   0.9, 0.5, 0.2, 0.1, 0.1, 0.2, 0.4, 0.9, 2.2, 3.4, 3.8, 3.5, 2.1, 3.0, 3.7, 3.9, 3.6, 3.0, 2.0, 1.1, 0.8, 0.7, 1.6,
   2.4,
 ];
-const NIGHT_HOURS = new Set([22, 23, 0, 1]);
+export const NIGHT_HOURS = new Set([22, 23, 0, 1]);
 const BASE_PER_HOUR = 14;
 
 let seq = 0;

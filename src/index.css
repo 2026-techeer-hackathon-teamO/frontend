@@ -352,6 +352,16 @@ label input, label select, label textarea { color: var(--text); font-size: 13px;
 .timeline-body { display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: center; }
 .timeline-body .muted { flex-basis: 100%; }
 
+/* 우측 컬럼 높이를 좌측 '분석 대상' 카드에 맞추고, 타임라인은 내부 스크롤 */
+.analysis-layout { align-items: stretch; }
+.analysis-layout > .stack { contain: size; }
+.timeline-card { flex: 1; min-height: 240px; display: flex; flex-direction: column; }
+.timeline-scroll { flex: 1; min-height: 0; overflow-y: auto; padding-left: 4px; }
+@media (max-width: 1000px) {
+  .analysis-layout > .stack { contain: none; }
+  .timeline-scroll { max-height: 480px; }
+}
+
 /* ---------- simulation ---------- */
 .history { list-style: none; margin: 0; padding: 0; }
 .history li { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }

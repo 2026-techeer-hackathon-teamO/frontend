@@ -5,7 +5,7 @@ import EventTable from "../components/EventTable";
 import RiskBadge from "../components/RiskBadge";
 import StatCard from "../components/StatCard";
 import { USE_MOCK, loadMockDashboard } from "../data/mockDashboard";
-import { mockAnalyses } from "../data/mockEvents";
+import { loadMockAnalyses } from "../data/mockEvents";
 import { usePolling } from "../hooks/usePolling";
 import { formatDateTime, formatNumber, formatTime } from "../utils/format";
 
@@ -101,7 +101,11 @@ function TypeDistribution({ items }: { items: { type: EventType; total: number |
   );
 }
 
+const MOCK_ALERT_LIMIT = 4;
+
 function MockAlertsPanel() {
+  const { data, loading } = usePolling(loadMockAnalyses, []);
+  const alerts = (data ?? []).filter((a) => a.risk_level !== "LOW").slice(0, MOCK_ALERT_LIMIT);
   return (
     <section className="card">
       <div className="card-head">
@@ -110,8 +114,9 @@ function MockAlertsPanel() {
           AI 분석 →
         </Link>
       </div>
+      {alerts.length === 0 && <p className="empty">{loading ? "불러오는 중…" : "최근 24시간 경보가 없습니다."}</p>}
       <ul className="history">
-        {mockAnalyses.map((a) => (
+        {alerts.map((a) => (
           <li key={a.id} style={{ flexDirection: "column", alignItems: "flex-start", gap: 4 }}>
             <div>
               <RiskBadge level={a.risk_level} /> <b>{a.attack_type}</b>
@@ -185,9 +190,7 @@ export default function Dashboard() {
     <div className="page">
       <header className="page-head">
         <div>
-          <h1>
-            보안 관제 대시보드 {USE_MOCK && <span className="tag tag-muted">목데이터</span>}
-          </h1>
+          <h1>보안 관제 대시보드</h1>
           <p className="muted">5초마다 자동 갱신{updatedAt && ` · 마지막 갱신 ${formatTime(updatedAt)}`}</p>
         </div>
         <button className="btn" onClick={refresh}>

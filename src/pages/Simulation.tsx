@@ -200,13 +200,6 @@ export default function Simulation() {
         </div>
       </header>
 
-      <div className="alert alert-warning">
-        이메일 DLP 검사·USB 시뮬레이션·허니파일 생성·카나리 테스트의 <b>실행 API는 아직 계약되지 않았습니다.</b> 이
-        화면은 각 시나리오에 해당하는 로그를 <code>POST /api/logs</code>로 등록만 하며, 허용/차단 결과는 수동으로
-        지정합니다. 실제 로그 적재는 Endpoint Agent 담당입니다. 서버는 저장 직후 유출 의심 여부를 분석하므로, 경보는
-        대시보드의 “최근 경보”에서 확인하세요.
-      </div>
-
       <div className="tabs">
         {SCENARIOS.map((s) => (
           <button

@@ -3,14 +3,18 @@ import { Link } from "react-router-dom";
 import { api } from "../api/client";
 import { BlockedTag, EventTypeTag } from "../components/EventTable";
 import RiskBadge, { RISK_LEVELS } from "../components/RiskBadge";
-import { mockAnalyses } from "../data/mockEvents";
+import { USE_MOCK, mockLogs } from "../data/mockDashboard";
+import { loadMockAnalyses } from "../data/mockEvents";
 import { usePolling } from "../hooks/usePolling";
 import { formatDateTime } from "../utils/format";
 
 const TIMELINE_LIMIT = 50;
 
 function Timeline({ user }: { user: string }) {
-  const { data, error, loading } = usePolling(() => api.logs({ user, limit: TIMELINE_LIMIT }), [user]);
+  const { data, error, loading } = usePolling(
+    () => (USE_MOCK ? mockLogs({ user, limit: TIMELINE_LIMIT }) : api.logs({ user, limit: TIMELINE_LIMIT })),
+    [user],
+  );
 
   if (error) return <p className="empty danger">조회 실패: {error.message}</p>;
   if (!data) return <p className="empty">{loading ? "불러오는 중…" : ""}</p>;
@@ -46,8 +50,10 @@ function Timeline({ user }: { user: string }) {
 }
 
 export default function Analysis() {
-  const [selectedId, setSelectedId] = useState(mockAnalyses[0]?.id);
-  const selected = mockAnalyses.find((a) => a.id === selectedId) ?? mockAnalyses[0];
+  const { data, error, loading } = usePolling(loadMockAnalyses, []);
+  const analyses = data ?? [];
+  const [selectedId, setSelectedId] = useState<string>();
+  const selected = analyses.find((a) => a.id === selectedId) ?? analyses[0];
 
   return (
     <div className="page">
@@ -58,29 +64,25 @@ export default function Analysis() {
         </div>
       </header>
 
-      <div className="alert alert-warning">
-        <b>목업 데이터</b> — LogRecord에는 위험도·판단 근거 필드가 없고, <code>GET /api/alerts</code> 응답 스키마가
-        아직 확정되지 않았습니다. 아래 분석 카드는 화면 구성 확인용 예시이며 실제 분석 결과가 아닙니다. 단, “관련
-        이벤트 타임라인”은 실제 로그 API 데이터입니다.
-      </div>
+      {error && <div className="alert alert-danger">분석 데이터 조회 실패: {error.message}</div>}
 
       <div className="risk-summary">
         {RISK_LEVELS.map((level) => (
           <div key={level} className="card risk-summary-item">
             <RiskBadge level={level} />
-            <span className="stat-value">{mockAnalyses.filter((a) => a.risk_level === level).length}</span>
+            <span className="stat-value">{analyses.filter((a) => a.risk_level === level).length}</span>
           </div>
         ))}
       </div>
 
-      <div className="grid-1-2">
+      <div className="grid-1-2 analysis-layout">
         <section className="card">
           <div className="card-head">
             <h2>분석 대상</h2>
-            <span className="tag tag-muted">목업</span>
           </div>
+          {analyses.length === 0 && <p className="empty">{loading ? "불러오는 중…" : "분석 대상이 없습니다."}</p>}
           <ul className="select-list">
-            {mockAnalyses.map((a) => (
+            {analyses.map((a) => (
               <li key={a.id}>
                 <button className={a.id === selected?.id ? "active" : ""} onClick={() => setSelectedId(a.id)}>
                   <div className="row-between">
@@ -101,7 +103,6 @@ export default function Analysis() {
             <section className="card">
               <div className="card-head">
                 <h2>{selected.attack_type}</h2>
-                <span className="tag tag-muted">목업</span>
               </div>
               <div className="analysis-meta">
                 <RiskBadge level={selected.risk_level} />
@@ -139,12 +140,13 @@ export default function Analysis() {
               </div>
             </section>
 
-            <section className="card">
+            <section className="card timeline-card">
               <div className="card-head">
                 <h2>관련 이벤트 타임라인</h2>
-                <span className="tag tag-ok">실데이터 · user={selected.user}</span>
               </div>
-              <Timeline user={selected.user} />
+              <div className="timeline-scroll">
+                <Timeline user={selected.user} />
+              </div>
             </section>
           </div>
         )}
